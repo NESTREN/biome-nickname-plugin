@@ -1,0 +1,3 @@
+# Symbol displayed before player nickname in chat and tab.
+# You can set almost any unicode symbol.
+symbol: "●"
