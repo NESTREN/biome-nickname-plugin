@@ -1,0 +1,2 @@
+# biome-nickname-plugin
+java
