@@ -6,26 +6,34 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
-public final class BiomeNicknamePlugin extends JavaPlugin {
+public final class BiomeNicknamePlugin extends JavaPlugin implements Listener {
     private static final String DEFAULT_SYMBOL = "●";
 
-    private final Map<UUID, Component> cachedPrefixes = new HashMap<>();
+    private final Map<UUID, Component> cachedPrefixes = new ConcurrentHashMap<>();
+    private Component defaultPrefix;
     private String symbol;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         symbol = getConfig().getString("symbol", DEFAULT_SYMBOL);
+        defaultPrefix = Component.text(symbol + " ", NamedTextColor.YELLOW);
 
+        Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
 
-        Bukkit.getScheduler().runTaskTimer(this, this::updateAllPlayersPrefix, 1L, 20L);
+        updateAllPlayersPrefix();
+        Bukkit.getScheduler().runTaskTimer(this, this::updateAllPlayersPrefix, 20L, 20L);
 
         getLogger().info("BiomeNicknamePlugin enabled on Paper " + Bukkit.getMinecraftVersion());
     }
@@ -36,22 +44,37 @@ public final class BiomeNicknamePlugin extends JavaPlugin {
     }
 
     public Component getPrefix(Player player) {
-        return cachedPrefixes.computeIfAbsent(player.getUniqueId(), ignored -> buildPrefix(player));
+        return cachedPrefixes.getOrDefault(player.getUniqueId(), defaultPrefix);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        updatePlayerPrefix(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        cachedPrefixes.remove(event.getPlayer().getUniqueId());
     }
 
     private void updateAllPlayersPrefix() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            Component newPrefix = buildPrefix(player);
-            Component oldPrefix = cachedPrefixes.get(player.getUniqueId());
-
-            if (newPrefix.equals(oldPrefix)) {
-                continue;
-            }
-
-            cachedPrefixes.put(player.getUniqueId(), newPrefix);
-            player.playerListName(Component.empty().append(newPrefix).append(Component.text(player.getName())));
-            player.displayName(Component.empty().append(newPrefix).append(Component.text(player.getName())));
+            updatePlayerPrefix(player);
         }
+    }
+
+    private void updatePlayerPrefix(Player player) {
+        Component newPrefix = buildPrefix(player);
+        Component oldPrefix = cachedPrefixes.get(player.getUniqueId());
+
+        if (newPrefix.equals(oldPrefix)) {
+            return;
+        }
+
+        cachedPrefixes.put(player.getUniqueId(), newPrefix);
+        Component decoratedName = Component.empty().append(newPrefix).append(Component.text(player.getName()));
+        player.playerListName(decoratedName);
+        player.displayName(decoratedName);
     }
 
     private Component buildPrefix(Player player) {
