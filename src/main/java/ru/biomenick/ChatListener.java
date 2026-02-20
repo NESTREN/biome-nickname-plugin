@@ -15,11 +15,10 @@ final class ChatListener implements Listener {
     @EventHandler
     public void onAsyncChat(AsyncChatEvent event) {
         event.renderer((source, sourceDisplayName, message, viewer) -> {
-            Component displayName = Component.empty()
+            Component vanillaChatPart = Component.translatable("chat.type.text", sourceDisplayName, message);
+            return Component.empty()
                     .append(plugin.getPrefix(source))
-                    .append(Component.text(source.getName()));
-
-            return Component.translatable("chat.type.text", displayName, message);
+                    .append(vanillaChatPart);
         });
     }
 }
