@@ -1,8 +1,10 @@
 package ru.biomenick;
 
+import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 final class ChatListener implements Listener {
@@ -12,18 +14,12 @@ final class ChatListener implements Listener {
         this.plugin = plugin;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onAsyncChat(AsyncChatEvent event) {
-        event.renderer((source, sourceDisplayName, message, viewer) -> {
-            Component plainNameChatPart = Component.translatable(
-                    "chat.type.text",
-                    Component.text(source.getName()),
-                    message
-            );
+        ChatRenderer existingRenderer = event.renderer();
 
-            return Component.empty()
-                    .append(plugin.getPrefix(source))
-                    .append(plainNameChatPart);
-        });
+        event.renderer((source, sourceDisplayName, message, viewer) -> Component.empty()
+                .append(plugin.getPrefix(source))
+                .append(existingRenderer.render(source, sourceDisplayName, message, viewer)));
     }
 }

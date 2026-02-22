@@ -72,9 +72,8 @@ public final class BiomeNicknamePlugin extends JavaPlugin implements Listener {
         }
 
         cachedPrefixes.put(player.getUniqueId(), newPrefix);
-        Component decoratedName = Component.empty().append(newPrefix).append(Component.text(player.getName()));
-        player.playerListName(decoratedName);
-        player.displayName(decoratedName);
+        Component tabName = Component.empty().append(newPrefix).append(Component.text(player.getName()));
+        player.playerListName(tabName);
     }
 
     private Component buildPrefix(Player player) {
