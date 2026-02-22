@@ -18,8 +18,15 @@ final class ChatListener implements Listener {
     public void onAsyncChat(AsyncChatEvent event) {
         ChatRenderer existingRenderer = event.renderer();
 
-        event.renderer((source, sourceDisplayName, message, viewer) -> Component.empty()
-                .append(plugin.getPrefix(source))
-                .append(existingRenderer.render(source, sourceDisplayName, message, viewer)));
+        event.renderer((source, sourceDisplayName, message, viewer) -> {
+            Component rendered = existingRenderer.render(source, sourceDisplayName, message, viewer);
+            if (!plugin.isPrependInChat()) {
+                return rendered;
+            }
+
+            return Component.empty()
+                    .append(plugin.getPrefix(source))
+                    .append(rendered);
+        });
     }
 }

@@ -1,3 +1,7 @@
 # Symbol displayed before player nickname in chat and tab.
 # You can set almost any unicode symbol.
 symbol: "●"
+
+# If true, the plugin prepends a biome icon in chat automatically.
+# Set to false if you want to place %biomenick_prefix% manually in your chat plugin format.
+prepend-in-chat: true

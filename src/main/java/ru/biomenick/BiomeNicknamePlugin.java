@@ -19,18 +19,25 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class BiomeNicknamePlugin extends JavaPlugin implements Listener {
     private static final String DEFAULT_SYMBOL = "●";
 
-    private final Map<UUID, Component> cachedPrefixes = new ConcurrentHashMap<>();
-    private Component defaultPrefix;
+    private final Map<UUID, PrefixData> cachedPrefixes = new ConcurrentHashMap<>();
+    private PrefixData defaultPrefix;
     private String symbol;
+    private boolean prependInChat;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         symbol = getConfig().getString("symbol", DEFAULT_SYMBOL);
-        defaultPrefix = Component.text(symbol + " ", NamedTextColor.YELLOW);
+        prependInChat = getConfig().getBoolean("prepend-in-chat", true);
+        defaultPrefix = createPrefixData(NamedTextColor.YELLOW);
 
         Bukkit.getPluginManager().registerEvents(this, this);
         Bukkit.getPluginManager().registerEvents(new ChatListener(this), this);
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new BiomeNicknamePlaceholderExpansion(this).register();
+            getLogger().info("PlaceholderAPI detected: %biomenick_prefix% and %biomenick_circle% are available.");
+        }
 
         updateAllPlayersPrefix();
         Bukkit.getScheduler().runTaskTimer(this, this::updateAllPlayersPrefix, 20L, 20L);
@@ -44,7 +51,23 @@ public final class BiomeNicknamePlugin extends JavaPlugin implements Listener {
     }
 
     public Component getPrefix(Player player) {
-        return cachedPrefixes.getOrDefault(player.getUniqueId(), defaultPrefix);
+        return cachedPrefixes.getOrDefault(player.getUniqueId(), defaultPrefix).component();
+    }
+
+    public String getLegacyPrefix(Player player) {
+        return cachedPrefixes.getOrDefault(player.getUniqueId(), defaultPrefix).legacyPrefix();
+    }
+
+    public String getLegacyCircle(Player player) {
+        return cachedPrefixes.getOrDefault(player.getUniqueId(), defaultPrefix).legacyCircle();
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public boolean isPrependInChat() {
+        return prependInChat;
     }
 
     @EventHandler
@@ -64,24 +87,61 @@ public final class BiomeNicknamePlugin extends JavaPlugin implements Listener {
     }
 
     private void updatePlayerPrefix(Player player) {
-        Component newPrefix = buildPrefix(player);
-        Component oldPrefix = cachedPrefixes.get(player.getUniqueId());
+        PrefixData newPrefix = buildPrefix(player);
+        PrefixData oldPrefix = cachedPrefixes.get(player.getUniqueId());
 
         if (newPrefix.equals(oldPrefix)) {
             return;
         }
 
         cachedPrefixes.put(player.getUniqueId(), newPrefix);
-        Component tabName = Component.empty().append(newPrefix).append(Component.text(player.getName()));
+        Component tabName = Component.empty().append(newPrefix.component()).append(Component.text(player.getName()));
         player.playerListName(tabName);
     }
 
-    private Component buildPrefix(Player player) {
+    private PrefixData buildPrefix(Player player) {
         Location location = player.getLocation();
         NamespacedKey biomeKey = location.getBlock().getBiome().getKey();
         NamedTextColor color = resolveColorByBiomeKey(biomeKey.getKey());
 
-        return Component.text(symbol + " ", color);
+        return createPrefixData(color);
+    }
+
+    private PrefixData createPrefixData(NamedTextColor color) {
+        String legacyColor = toLegacyCode(color);
+        return new PrefixData(
+                Component.text(symbol + " ", color),
+                legacyColor + symbol + " ",
+                legacyColor + symbol
+        );
+    }
+
+    private String toLegacyCode(NamedTextColor color) {
+        if (color == NamedTextColor.LIGHT_PURPLE) {
+            return "§d";
+        }
+        if (color == NamedTextColor.RED) {
+            return "§c";
+        }
+        if (color == NamedTextColor.AQUA) {
+            return "§b";
+        }
+        if (color == NamedTextColor.WHITE) {
+            return "§f";
+        }
+        if (color == NamedTextColor.GOLD) {
+            return "§6";
+        }
+        if (color == NamedTextColor.DARK_GREEN) {
+            return "§2";
+        }
+        if (color == NamedTextColor.GREEN) {
+            return "§a";
+        }
+        if (color == NamedTextColor.GRAY) {
+            return "§7";
+        }
+        return "§e";
     }
 
     private NamedTextColor resolveColorByBiomeKey(String biome) {
@@ -124,5 +184,8 @@ public final class BiomeNicknamePlugin extends JavaPlugin implements Listener {
         }
 
         return NamedTextColor.YELLOW;
+    }
+
+    private record PrefixData(Component component, String legacyPrefix, String legacyCircle) {
     }
 }

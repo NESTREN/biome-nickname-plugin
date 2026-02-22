@@ -39,6 +39,27 @@
 
 ## 🤝 Совместимость с chatgl-mc и плейсхолдерами
 
+## 🔤 PlaceholderAPI поддержка
+
+Если на сервере установлен **PlaceholderAPI**, доступны плейсхолдеры:
+
+- `%biomenick_prefix%` → цветной кружок + пробел (например `§a● `)
+- `%biomenick_circle%` → только цветной кружок без пробела (например `§a●`)
+- `%biomenick_symbol%` → символ из конфига без цвета
+
+Пример для chatgl-mc (или любого форматтера):
+
+```text
+%biomenick_prefix%{prefix}<%player_name%> %message%
+```
+
+Так вы сами контролируете, **где именно** показывать кружок в формате чата.
+
+Если используете плейсхолдер в формате чата, поставьте в `config.yml`:
+`prepend-in-chat: false` — чтобы не было дубля.
+
+---
+
 Плагин **не перезаписывает** формат чата вручную. Вместо этого он:
 1. Берёт текущий renderer, уже подготовленный другими чат-плагинами.
 2. Использует результат этого renderer (со всеми плейсхолдерами/префиксами/форматом).
@@ -87,6 +108,10 @@ flowchart TD
 # Symbol displayed before player nickname in chat and tab.
 # You can set almost any unicode symbol.
 symbol: "●"
+
+# If true, the plugin prepends a biome icon in chat automatically.
+# Set to false if you want to place %biomenick_prefix% manually in your chat plugin format.
+prepend-in-chat: true
 ```
 
 Примеры символов:
