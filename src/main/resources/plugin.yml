@@ -2,8 +2,6 @@ name: BiomeNicknamePlugin
 version: 1.0.0
 main: ru.biomenick.BiomeNicknamePlugin
 api-version: '1.21'
-authors: [ "Codex" ]
+authors: [ "nestren" ]
 description: Colored biome circle next to player nickname in chat and tab list.
-website: https://example.com
-
-softdepend: [ "PlaceholderAPI" ]
+website: https://t.me/gnzbio
