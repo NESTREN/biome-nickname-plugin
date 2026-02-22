@@ -171,6 +171,19 @@ target/biome-nickname-plugin-1.0.0.jar
 
 ## 🧯 Если Paper пишет "does not contain a paper-plugin.yml or plugin.yml"
 
+### Ошибка `ClassNotFoundException: me.clip.placeholderapi.expansion.PlaceholderExpansion`
+
+Причина: Paper загрузил плагин в изолированном classloader без присоединения classpath PlaceholderAPI.
+
+Что уже сделано в этом проекте:
+- добавлена зависимость в `paper-plugin.yml` с `join-classpath: true` для `PlaceholderAPI`.
+
+Что сделать на сервере:
+1. Обновить jar плагина.
+2. Убедиться, что `PlaceholderAPI` действительно установлен и включается без ошибок.
+3. Удалить `plugins/.paper-remapped` и перезапустить сервер.
+
+
 Это означает, что в `.jar` попал неправильный набор файлов (обычно не та сборка/не тот артефакт).
 
 Проверьте:
